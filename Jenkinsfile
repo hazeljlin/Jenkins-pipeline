@@ -4,10 +4,11 @@ pipeline {
     tools {
      maven 'Maven 3.x'
     }
-    
+
     stages {
         stage('Build') {
             steps {
+                dir('my-app')
                 echo 'Building the code...'
                 sh 'mvn clean install'
             }
