@@ -66,7 +66,7 @@ pipeline {
     post {
         always {
             echo 'Sending email notifications...'
-            mail to: 's223083133@deakin.edu.au',
+            mail to: 'jxl1712@gmail.com',
                  subject: "Jenkins Pipeline: ${currentBuild.fullDisplayName}",
                  body: "Build ${currentBuild.currentResult}: ${env.BUILD_URL}"
         }
