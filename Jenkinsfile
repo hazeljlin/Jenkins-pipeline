@@ -1,75 +1,64 @@
 pipeline {
     agent any
-    
-    environment {
-        MAVEN_HOME = tool 'Maven'
-        SONAR_SCANNER_HOME = tool 'SonarQube Scanner' // SonarQube scanner
-    }
 
     stages {
         stage('Build') {
             steps {
-                echo 'Building the application...'
-                sh "${MAVEN_HOME}/bin/mvn clean package"
+                echo 'Building the code...'
+                sh 'mvn clean install'
             }
         }
 
         stage('Unit and Integration Tests') {
             steps {
-                echo 'Running Unit and Integration Tests...'
-                sh "${MAVEN_HOME}/bin/mvn test"
+                echo 'Running unit and integration tests...'
+                sh 'mvn test'
             }
         }
 
         stage('Code Analysis') {
             steps {
-                echo 'Running SonarQube Code Analysis...'
-                withSonarQubeEnv('SonarQube') { // SonarQube environment
-                    sh "${SONAR_SCANNER_HOME}/bin/sonar-scanner"
-                }
+                echo 'Performing code analysis...'
+                sh 'mvn sonar:sonar'
             }
         }
 
         stage('Security Scan') {
             steps {
-                echo 'Running Security Scan...'
-                sh 'dependency-check --project my-app --out reports --scan ./'
+                echo 'Performing security scan...'
+                sh 'mvn org.owasp:dependency-check-maven:check'
             }
         }
 
         stage('Deploy to Staging') {
             steps {
-                echo 'Deploying to Staging...'
-                sh 'ansible-playbook -i staging_inventory deploy.yml'
+                echo 'Deploying to staging...'
+                sh 'scp target/your-app.jar jxl@192.168.0.101:/Users/jxl/Desktop/Jenkins_pipeline'
             }
         }
 
         stage('Integration Tests on Staging') {
             steps {
-                echo 'Running Integration Tests on Staging...'
-                sh 'postman run my-integration-tests.postman_collection.json'
-
+                echo 'Running integration tests on staging...'
+                sh 'ssh jxl@192.168.0.101 "cd /Users/jxl/Desktop/Jenkins_pipeline && ./run-tests.sh"'
             }
         }
 
         stage('Deploy to Production') {
             steps {
-                echo 'Deploying to Production...'
-                sh 'terraform apply -auto-approve'
+                echo 'Deploying to production...'
+                sh 'scp target/your-app.jar jxl@192.168.0.101:/Users/jxl/Desktop/Jenkins_pipeline'
             }
         }
     }
 
     post {
         always {
-            echo 'Pipeline finished.'
-            cleanWs()
-        }
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed.'
+            echo 'Sending email notifications...'
+            mail to: 's223083133@deakin.edu.au',
+                 subject: "Jenkins Pipeline: ${currentBuild.fullDisplayName}",
+                 body: "Build ${currentBuild.currentResult}: ${env.BUILD_URL}"
         }
     }
 }
+
