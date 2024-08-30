@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    tools {
+        maven 'Maven 3.x'  // 这里的'Maven'是你在步骤4中配置的名称
+    }
 
     stages {
         stage('Build') {
